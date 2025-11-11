@@ -1,0 +1,2048 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pembelajaran Bahasa Arab</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      overflow-x: hidden;
+    }
+
+    body {
+      box-sizing: border-box;
+    }
+
+    .container {
+      min-height: 100%;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+      position: relative;
+    }
+
+    .header h1 {
+      font-size: 32px;
+      margin-bottom: 8px;
+      font-weight: 700;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .header p {
+      font-size: 16px;
+      opacity: 0.95;
+    }
+
+    .user-badge {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .user-badge.teacher {
+      background: rgba(76, 175, 80, 0.3);
+    }
+
+    .logout-btn {
+      background: rgba(255, 255, 255, 0.3);
+      border: none;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 15px;
+      cursor: pointer;
+      font-size: 12px;
+      margin-left: 10px;
+      transition: all 0.3s ease;
+    }
+
+    .logout-btn:hover {
+      background: rgba(255, 255, 255, 0.5);
+    }
+
+    .login-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .login-container {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 450px;
+      width: 100%;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+
+    .login-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: #2d3748;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .login-options {
+      display: grid;
+      gap: 15px;
+    }
+
+    .login-btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 18px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .login-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .login-btn.student {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+
+    .student-login-form, .teacher-login-form {
+      display: none;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 2px solid #e2e8f0;
+    }
+
+    .student-login-form.active, .teacher-login-form.active {
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: #4a5568;
+      margin-bottom: 8px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: all 0.3s ease;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .submit-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .error-message {
+      background: #fed7d7;
+      color: #c53030;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .student-id-display {
+      background: #f7fafc;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+      text-align: center;
+    }
+
+    .student-id-label {
+      font-size: 12px;
+      color: #718096;
+      margin-bottom: 5px;
+    }
+
+    .student-id-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: #667eea;
+    }
+
+    .semester-tabs {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 25px;
+      justify-content: center;
+    }
+
+    .semester-tab {
+      padding: 12px 30px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 25px;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .semester-tab:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .semester-tab.active {
+      background: white;
+      color: #667eea;
+      border-color: white;
+    }
+
+    .chapters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .chapter-card {
+      background: white;
+      border-radius: 15px;
+      padding: 25px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .chapter-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+
+    .chapter-icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    .chapter-number {
+      font-size: 14px;
+      color: #667eea;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .chapter-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .chapter-subtitle {
+      font-size: 14px;
+      color: #718096;
+      text-align: center;
+    }
+
+    .submenu-container {
+      display: none;
+      background: white;
+      border-radius: 15px;
+      padding: 30px;
+      margin-bottom: 20px;
+    }
+
+    .submenu-container.active {
+      display: block;
+    }
+
+    .submenu-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .back-btn {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      margin-right: 15px;
+      transition: all 0.3s ease;
+    }
+
+    .back-btn:hover {
+      background: #5568d3;
+    }
+
+    .submenu-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #2d3748;
+    }
+
+    .submenu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+
+    .submenu-item {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.3s ease;
+      border: none;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .submenu-item:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .submenu-item-icon {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .content-area {
+      display: none;
+      background: white;
+      border-radius: 15px;
+      padding: 30px;
+      margin-bottom: 20px;
+    }
+
+    .content-area.active {
+      display: block;
+    }
+
+    .content-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .upload-area {
+      border: 2px dashed #cbd5e0;
+      border-radius: 12px;
+      padding: 40px;
+      text-align: center;
+      margin-bottom: 20px;
+      background: #f7fafc;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .upload-area:hover {
+      border-color: #667eea;
+      background: #edf2f7;
+    }
+
+    .upload-icon {
+      font-size: 48px;
+      color: #667eea;
+      margin-bottom: 15px;
+    }
+
+    .upload-text {
+      font-size: 16px;
+      color: #4a5568;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .upload-hint {
+      font-size: 14px;
+      color: #a0aec0;
+    }
+
+    .file-input-wrapper {
+      margin-top: 20px;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .file-input-label {
+      display: inline-block;
+      background: #667eea;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .file-input-label:hover {
+      background: #5568d3;
+    }
+
+    .file-name-display {
+      margin-top: 15px;
+      padding: 12px;
+      background: #edf2f7;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #4a5568;
+    }
+
+    .upload-form {
+      background: #f7fafc;
+      padding: 25px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .content-list {
+      display: grid;
+      gap: 15px;
+    }
+
+    .content-item {
+      background: #f7fafc;
+      padding: 20px;
+      border-radius: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .content-info {
+      flex: 1;
+    }
+
+    .content-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #2d3748;
+      margin-bottom: 5px;
+    }
+
+    .content-meta {
+      font-size: 14px;
+      color: #718096;
+    }
+
+    .content-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .view-btn {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .view-btn:hover {
+      background: #5568d3;
+    }
+
+    .download-btn {
+      background: #48bb78;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .download-btn:hover {
+      background: #38a169;
+    }
+
+    .delete-btn {
+      background: #fc8181;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    .delete-btn:hover {
+      background: #f56565;
+    }
+
+    .quiz-container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .quiz-question {
+      background: #f7fafc;
+      padding: 25px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .question-number {
+      font-size: 14px;
+      color: #667eea;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .question-text {
+      font-size: 18px;
+      color: #2d3748;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    .quiz-options {
+      display: grid;
+      gap: 10px;
+    }
+
+    .quiz-option {
+      background: white;
+      border: 2px solid #e2e8f0;
+      padding: 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: left;
+    }
+
+    .quiz-option:hover {
+      border-color: #667eea;
+      background: #edf2f7;
+    }
+
+    .quiz-option.selected {
+      border-color: #667eea;
+      background: #e6f2ff;
+    }
+
+    .quiz-option.correct {
+      border-color: #48bb78;
+      background: #c6f6d5;
+    }
+
+    .quiz-option.incorrect {
+      border-color: #f56565;
+      background: #fed7d7;
+    }
+
+    .quiz-option.disabled {
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
+    .answer-indicator {
+      display: inline-block;
+      margin-left: 10px;
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .quiz-nav {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
+
+    .quiz-btn {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .quiz-btn:hover {
+      background: #5568d3;
+    }
+
+    .quiz-btn:disabled {
+      background: #cbd5e0;
+      cursor: not-allowed;
+    }
+
+    .quiz-result {
+      text-align: center;
+      padding: 40px;
+    }
+
+    .result-score {
+      font-size: 72px;
+      font-weight: 700;
+      color: #667eea;
+      margin-bottom: 15px;
+    }
+
+    .result-text {
+      font-size: 24px;
+      color: #2d3748;
+      margin-bottom: 30px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #a0aec0;
+    }
+
+    .empty-icon {
+      font-size: 64px;
+      margin-bottom: 15px;
+    }
+
+    .empty-text {
+      font-size: 18px;
+    }
+
+    .student-notice {
+      background: #bee3f8;
+      color: #2c5282;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .students-list-section {
+      background: white;
+      border-radius: 15px;
+      padding: 30px;
+      margin-bottom: 20px;
+    }
+
+    .students-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .students-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #2d3748;
+    }
+
+    .student-count {
+      background: #667eea;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .students-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+    }
+
+    .student-card {
+      background: #f7fafc;
+      padding: 15px;
+      border-radius: 10px;
+      border: 2px solid #e2e8f0;
+    }
+
+    .student-card-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: #2d3748;
+      margin-bottom: 5px;
+    }
+
+    .student-card-id {
+      font-size: 12px;
+      color: #718096;
+    }
+
+    .success-message {
+      background: #c6f6d5;
+      color: #2f855a;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .file-preview-container {
+      background: #f7fafc;
+      border-radius: 10px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+
+    .file-preview-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #2d3748;
+      margin-bottom: 15px;
+    }
+
+    .file-preview-content {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      min-height: 200px;
+    }
+
+    .file-preview-icon {
+      font-size: 64px;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    .file-preview-text {
+      font-size: 16px;
+      color: #4a5568;
+      text-align: center;
+    }
+
+    .pdf-viewer {
+      width: 100%;
+      height: 600px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+    }
+
+    .image-viewer {
+      max-width: 100%;
+      max-height: 500px;
+      display: block;
+      margin: 0 auto;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .audio-player {
+      width: 100%;
+      margin: 20px 0;
+    }
+
+    .video-player {
+      width: 100%;
+      max-height: 500px;
+      border-radius: 8px;
+    }
+
+    .text-content {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      line-height: 1.6;
+      font-size: 16px;
+      color: #2d3748;
+      white-space: pre-wrap;
+    }
+
+    .file-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+
+    .file-tab {
+      background: #e2e8f0;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    .file-tab.active {
+      background: #667eea;
+      color: white;
+    }
+
+    .file-tab:hover {
+      background: #cbd5e0;
+    }
+
+    .file-tab.active:hover {
+      background: #5568d3;
+    }
+
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 24px;
+      }
+
+      .user-badge {
+        position: static;
+        margin-top: 15px;
+        justify-content: center;
+      }
+
+      .chapters-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .semester-tabs {
+        flex-direction: column;
+      }
+
+      .submenu-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .students-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .pdf-viewer {
+        height: 400px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="login-view" class="login-screen">
+    <div class="login-container">
+      <div class="login-title">
+        🕌 Pembelajaran Bahasa Arab
+      </div>
+      <div class="login-options">
+        <button type="button" class="login-btn student" id="student-login-btn">
+          <span>👨‍🎓</span>
+          <span>Masuk sebagai Siswa</span>
+        </button>
+        <button type="button" class="login-btn" id="teacher-login-btn">
+          <span>👨‍🏫</span>
+          <span>Masuk sebagai Guru</span>
+        </button>
+      </div>
+      <form class="student-login-form" id="student-login-form">
+        <div id="student-login-error"></div>
+        <div class="form-group">
+          <label class="form-label" for="student-name-input">Nama Lengkap</label>
+          <input type="text" id="student-name-input" class="form-input" placeholder="Masukkan nama lengkap Anda" required>
+        </div>
+        <button type="submit" class="submit-btn">Masuk</button>
+        <div class="student-id-display" id="student-id-preview" style="display: none;">
+          <div class="student-id-label">
+            ID Siswa Anda:
+          </div>
+          <div class="student-id-value" id="student-id-preview-value"></div>
+        </div>
+      </form>
+      <form class="teacher-login-form" id="teacher-login-form">
+        <div id="login-error"></div>
+        <div class="form-group">
+          <label class="form-label" for="password-input">Password Guru</label>
+          <input type="password" id="password-input" class="form-input" placeholder="Masukkan password (default: guru123)" required>
+        </div>
+        <button type="submit" class="submit-btn">Masuk</button>
+      </form>
+    </div>
+  </div>
+  <div id="app-view" class="container" style="display: none;">
+    <header class="header">
+      <div class="user-badge" id="user-badge">
+        <span id="user-icon">👨‍🎓</span>
+        <span id="user-role">Siswa</span>
+        <button class="logout-btn" id="logout-btn">Keluar</button>
+      </div>
+      <h1>تعلم اللغة العربية</h1>
+      <p>Pembelajaran Bahasa Arab - Kelas X Madrasah Aliyah</p>
+    </header>
+    <main id="main-menu">
+      <div id="students-list-view" class="students-list-section" style="display: none;">
+        <div class="students-header">
+          <h2 class="students-title">📋 Daftar Siswa Terdaftar</h2>
+          <div class="student-count" id="student-count-badge">
+            0 Siswa
+          </div>
+        </div>
+        <div class="students-grid" id="students-grid"></div>
+      </div>
+      <div class="semester-tabs">
+        <button class="semester-tab active" data-semester="1">Semester 1</button>
+        <button class="semester-tab" data-semester="2">Semester 2</button>
+      </div>
+      <div class="chapters-grid" id="chapters-container"></div>
+    </main>
+    <div id="submenu-view" class="submenu-container">
+      <div class="submenu-header">
+        <button class="back-btn" id="back-to-chapters">← Kembali</button>
+        <h2 class="submenu-title" id="submenu-chapter-title"></h2>
+      </div>
+      <div class="submenu-grid" id="submenu-items"></div>
+    </div>
+    <div id="content-view" class="content-area">
+      <div class="content-header">
+        <button class="back-btn" id="back-to-submenu">← Kembali</button>
+        <h2 class="submenu-title" id="content-section-title"></h2>
+      </div>
+      <div id="content-body"></div>
+    </div>
+  </div>
+  <script>
+    // Data storage menggunakan localStorage
+    const STORAGE_KEY = 'arabic_learning_data';
+    
+    const chapters = [
+      { id: 1, semester: 1, icon: '👋', title: 'التحيات والتعارف', subtitle: 'Salam dan Perkenalan' },
+      { id: 2, semester: 1, icon: '👨‍👩‍👧‍👦', title: 'الأسرة', subtitle: 'Keluarga' },
+      { id: 3, semester: 1, icon: '🏫', title: 'المدرسة', subtitle: 'Sekolah' },
+      { id: 4, semester: 2, icon: '🌅', title: 'الْحَيَاةُ الْيَوْمِيَّةُ', subtitle: 'Kehidupan Sehari-hari' },
+      { id: 5, semester: 2, icon: '⚽', title: 'الهواية', subtitle: 'Hobi' },
+      { id: 6, semester: 2, icon: '🍽️', title: 'الطعام و الشراب', subtitle: 'Makanan dan Minuman' }
+    ];
+
+    const submenus = [
+      { id: 'mufrodat', icon: '📚', title: 'Mufrodat', subtitle: 'Kosakata' },
+      { id: 'qiroah', icon: '📖', title: 'Qiroah', subtitle: 'Membaca' },
+      { id: 'hiwar', icon: '💬', title: 'Hiwar', subtitle: 'Percakapan' },
+      { id: 'qowaid', icon: '✍️', title: 'Qowaid', subtitle: 'Tata Bahasa' },
+      { id: 'quiz', icon: '🎮', title: 'Quiz', subtitle: 'Latihan Soal' }
+    ];
+
+    // Contoh konten file untuk demo
+    const sampleFiles = {
+      'mufrodat': [
+        { 
+          name: 'kosakata-harian.pdf', 
+          type: 'pdf', 
+          size: '2.4 MB', 
+          content: 'PDF',
+          data: `
+KOSAKATA BAHASA ARAB SEHARI-HARI
+
+1. التحيات (Salam)
+   - السلام عليكم - Assalamu'alaikum (Semoga keselamatan atasmu)
+   - وعليكم السلام - Wa'alaikum salam (Dan semoga keselamatan atasmu juga)
+   - مرحبا - Marhaban (Selamat datang)
+   - مع السلامة - Ma'assalama (Selamat tinggal)
+
+2. الأسرة (Keluarga)
+   - أب - Abun (Ayah)
+   - أم - Ummun (Ibu)
+   - أخ - Akhun (Saudara laki-laki)
+   - أخت - Ukhtun (Saudara perempuan)
+
+3. الألوان (Warna)
+   - أحمر - Ahmar (Merah)
+   - أزرق - Azraq (Biru)
+   - أخضر - Akhdar (Hijau)
+   - أصفر - Asfar (Kuning)
+          `
+        },
+        { 
+          name: 'gambar-benda.jpg', 
+          type: 'image', 
+          size: '1.2 MB', 
+          content: 'IMAGE',
+          data: 'https://images.unsplash.com/photo-1517697471339-4aa32003c11a?w=600&h=400&fit=crop'
+        }
+      ],
+      'qiroah': [
+        { 
+          name: 'teks-bacaan.docx', 
+          type: 'document', 
+          size: '0.8 MB', 
+          content: 'TEXT',
+          data: `
+نص القراءة العربية
+
+في المدرسة
+
+أنا طالب في المدرسة. أذهب إلى المدرسة كل يوم. في المدرسة أتعلم اللغة العربية والرياضيات والعلوم. أحب المدرسة لأن فيها أصدقائي ومعلميني.
+
+أستيقظ مبكراً في الصباح. آكل الفطور ثم أذهب إلى المدرسة. في الفصل الدراسي، أستمع إلى المعلم وأكتب الدرس. أثناء الاستراحة، ألعب مع أصدقائي.
+
+المدرسة مكان جميل للتعلم واللعب. أنا سعيد في المدرسة.
+
+ترجمة:
+Saya adalah siswa di sekolah. Saya pergi ke sekolah setiap hari. Di sekolah saya belajar bahasa Arab, matematika, dan sains. Saya suka sekolah karena di sana ada teman-teman dan guru-guru saya.
+
+Saya bangun pagi-pagi. Saya sarapan lalu pergi ke sekolah. Di kelas, saya mendengarkan guru dan mencatat pelajaran. Saat istirahat, saya bermain dengan teman-teman.
+
+Sekolah adalah tempat yang indah untuk belajar dan bermain. Saya senang di sekolah.
+          `
+        },
+        { 
+          name: 'audio-pengucapan.mp3', 
+          type: 'audio', 
+          size: '3.5 MB', 
+          content: 'AUDIO',
+          data: 'https://www.soundjay.com/button/beep-07.wav'
+        }
+      ],
+      'hiwar': [
+        { 
+          name: 'video-percakapan.mp4', 
+          type: 'video', 
+          size: '15.2 MB', 
+          content: 'VIDEO',
+          data: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'
+        }
+      ],
+      'qowaid': [
+        { 
+          name: 'tata-bahasa.pdf', 
+          type: 'pdf', 
+          size: '3.1 MB', 
+          content: 'PDF',
+          data: `
+TATA BAHASA ARAB DASAR
+
+1. ISIM (Kata Benda)
+   - Isim adalah kata yang menunjukkan pada suatu benda, orang, atau konsep.
+   - Contoh: كِتَابٌ (buku), مُعَلِّمٌ (guru), بَيْتٌ (rumah)
+
+2. FI'IL (Kata Kerja)
+   - Fi'il adalah kata yang menunjukkan pekerjaan atau perbuatan.
+   - Terdiri dari tiga waktu:
+     * الماضي (Lampau): فَعَلَ (telah melakukan)
+     * المضارع (Sekarang): يَفْعَلُ (sedang melakukan)
+     * الأمر (Perintah): اِفْعَلْ (lakukanlah!)
+
+3. HARF (Kata Tugas)
+   - Huruf adalah kata yang tidak memiliki makna sempurna kecuali dengan kata lain.
+   - Contoh: فِي (di dalam), عَلَى (di atas), مِنْ (dari)
+
+4. JENIS KALIMAT
+   - الجملة الاسمية (Kalimat Nominal): Dimulai dengan isim
+     Contoh: الْوَلَدُ ذَكِيٌّ (Anak itu pandai)
+   - الجملة الفعلية (Kalimat Verbal): Dimulai dengan fi'il
+     Contoh: ذَهَبَ الْوَلَدُ (Anak itu telah pergi)
+          `
+        }
+      ]
+    };
+
+    let currentSemester = 1;
+    let currentChapter = null;
+    let currentSection = null;
+    let userRole = null;
+    let currentStudentId = null;
+    let currentStudentName = null;
+    let currentFileIndex = 0;
+
+    // Fungsi localStorage
+    function loadData() {
+      const data = localStorage.getItem(STORAGE_KEY);
+      return data ? JSON.parse(data) : { students: [], contents: [], quizResults: [] };
+    }
+
+    function saveData(data) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function generateStudentId(name) {
+      const namePart = name.substring(0, 3).toUpperCase().replace(/[^A-Z]/g, 'X');
+      const randomPart = Math.floor(1000 + Math.random() * 9000);
+      return `${namePart}${randomPart}`;
+    }
+
+    // Setup event listeners
+    function setupLoginListeners() {
+      document.getElementById('student-login-btn').addEventListener('click', (e) => {
+        e.preventDefault();
+        const studentForm = document.getElementById('student-login-form');
+        const teacherForm = document.getElementById('teacher-login-form');
+        
+        studentForm.classList.add('active');
+        teacherForm.classList.remove('active');
+        
+        document.getElementById('password-input').value = '';
+        document.getElementById('login-error').innerHTML = '';
+      });
+
+      document.getElementById('teacher-login-btn').addEventListener('click', (e) => {
+        e.preventDefault();
+        const studentForm = document.getElementById('student-login-form');
+        const teacherForm = document.getElementById('teacher-login-form');
+        
+        teacherForm.classList.add('active');
+        studentForm.classList.remove('active');
+        
+        document.getElementById('student-name-input').value = '';
+        document.getElementById('student-id-preview').style.display = 'none';
+        document.getElementById('student-login-error').innerHTML = '';
+      });
+
+      document.getElementById('student-login-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('student-name-input').value.trim();
+        loginAsStudent(name);
+      });
+
+      document.getElementById('teacher-login-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const password = document.getElementById('password-input').value;
+        loginAsTeacher(password);
+      });
+
+      document.getElementById('logout-btn').addEventListener('click', logout);
+    }
+
+    function loginAsStudent(name) {
+      if (!name || name.length < 3) {
+        showLoginError('student-login-error', 'Nama harus minimal 3 karakter.');
+        return;
+      }
+
+      const data = loadData();
+      
+      if (data.students.length >= 50) {
+        showLoginError('student-login-error', 'Maaf, kuota siswa sudah penuh (maksimal 50 siswa).');
+        return;
+      }
+
+      const existingStudent = data.students.find(s => 
+        s.name.toLowerCase() === name.toLowerCase()
+      );
+
+      if (existingStudent) {
+        currentStudentId = existingStudent.id;
+        currentStudentName = existingStudent.name;
+        userRole = 'student';
+        showApp();
+        return;
+      }
+
+      const newStudentId = generateStudentId(name);
+      data.students.push({
+        id: newStudentId,
+        name: name,
+        createdAt: new Date().toISOString()
+      });
+      saveData(data);
+
+      currentStudentId = newStudentId;
+      currentStudentName = name;
+      userRole = 'student';
+      
+      const preview = document.getElementById('student-id-preview');
+      const previewValue = document.getElementById('student-id-preview-value');
+      previewValue.textContent = newStudentId;
+      preview.style.display = 'block';
+      
+      setTimeout(() => {
+        showApp();
+      }, 2000);
+    }
+
+    function loginAsTeacher(password) {
+      if (password === 'guru123') {
+        userRole = 'teacher';
+        showApp();
+      } else {
+        showLoginError('login-error', 'Password salah. Silakan coba lagi.');
+      }
+    }
+
+    function showLoginError(elementId, message) {
+      const errorDiv = document.getElementById(elementId);
+      errorDiv.innerHTML = `<div class="error-message">${message}</div>`;
+      setTimeout(() => {
+        errorDiv.innerHTML = '';
+      }, 3000);
+    }
+
+    function logout() {
+      userRole = null;
+      currentStudentId = null;
+      currentStudentName = null;
+      document.getElementById('login-view').style.display = 'flex';
+      document.getElementById('app-view').style.display = 'none';
+      document.getElementById('teacher-login-form').classList.remove('active');
+      document.getElementById('student-login-form').classList.remove('active');
+      document.getElementById('password-input').value = '';
+      document.getElementById('student-name-input').value = '';
+      document.getElementById('student-id-preview').style.display = 'none';
+      showView('main-menu');
+    }
+
+    function showApp() {
+      document.getElementById('login-view').style.display = 'none';
+      document.getElementById('app-view').style.display = 'flex';
+      
+      const userBadge = document.getElementById('user-badge');
+      const userIcon = document.getElementById('user-icon');
+      const userRoleText = document.getElementById('user-role');
+      
+      if (userRole === 'teacher') {
+        userBadge.classList.add('teacher');
+        userIcon.textContent = '👨‍🏫';
+        userRoleText.textContent = 'Guru';
+        document.getElementById('students-list-view').style.display = 'block';
+        updateStudentsList();
+      } else {
+        userBadge.classList.remove('teacher');
+        userIcon.textContent = '👨‍🎓';
+        userRoleText.textContent = `${currentStudentName} (${currentStudentId})`;
+        document.getElementById('students-list-view').style.display = 'none';
+      }
+      
+      renderChapters();
+      setupEventListeners();
+    }
+
+    function updateStudentsList() {
+      const data = loadData();
+      const studentsGrid = document.getElementById('students-grid');
+      const countBadge = document.getElementById('student-count-badge');
+      
+      countBadge.textContent = `${data.students.length} Siswa`;
+      
+      if (data.students.length === 0) {
+        studentsGrid.innerHTML = `
+          <div class="empty-state" style="grid-column: 1 / -1;">
+            <div class="empty-icon">👥</div>
+            <div class="empty-text">Belum ada siswa yang terdaftar</div>
+          </div>
+        `;
+        return;
+      }
+
+      studentsGrid.innerHTML = data.students
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map(student => `
+          <div class="student-card">
+            <div class="student-card-name">👨‍🎓 ${student.name}</div>
+            <div class="student-card-id">ID: ${student.id}</div>
+          </div>
+        `).join('');
+    }
+
+    function setupEventListeners() {
+      document.querySelectorAll('.semester-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.semester-tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          currentSemester = parseInt(tab.dataset.semester);
+          renderChapters();
+        });
+      });
+
+      document.getElementById('back-to-chapters').addEventListener('click', () => {
+        showView('main-menu');
+        currentChapter = null;
+      });
+
+      document.getElementById('back-to-submenu').addEventListener('click', () => {
+        showView('submenu-view');
+        currentSection = null;
+      });
+    }
+
+    function renderChapters() {
+      const container = document.getElementById('chapters-container');
+      const filteredChapters = chapters.filter(ch => ch.semester === currentSemester);
+      
+      container.innerHTML = filteredChapters.map(chapter => `
+        <div class="chapter-card" data-chapter="${chapter.id}">
+          <div class="chapter-icon">${chapter.icon}</div>
+          <div class="chapter-number">Bab ${chapter.id}</div>
+          <div class="chapter-title">${chapter.title}</div>
+          <div class="chapter-subtitle">${chapter.subtitle}</div>
+        </div>
+      `).join('');
+
+      container.querySelectorAll('.chapter-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const chapterId = parseInt(card.dataset.chapter);
+          openChapter(chapterId);
+        });
+      });
+    }
+
+    function openChapter(chapterId) {
+      currentChapter = chapters.find(ch => ch.id === chapterId);
+      document.getElementById('submenu-chapter-title').textContent = `${currentChapter.title} - ${currentChapter.subtitle}`;
+      
+      const submenuContainer = document.getElementById('submenu-items');
+      submenuContainer.innerHTML = submenus.map(submenu => `
+        <button class="submenu-item" data-section="${submenu.id}">
+          <div class="submenu-item-icon">${submenu.icon}</div>
+          <div>${submenu.title}</div>
+          <div style="font-size: 12px; opacity: 0.9; margin-top: 5px;">${submenu.subtitle}</div>
+        </button>
+      `).join('');
+
+      submenuContainer.querySelectorAll('.submenu-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const section = item.dataset.section;
+          openSection(section);
+        });
+      });
+
+      showView('submenu-view');
+    }
+
+    function openSection(section) {
+      currentSection = section;
+      const submenu = submenus.find(s => s.id === section);
+      document.getElementById('content-section-title').textContent = `${submenu.title} - ${currentChapter.title}`;
+      
+      if (section === 'quiz') {
+        renderQuiz();
+      } else {
+        renderContentArea(section);
+      }
+      
+      showView('content-view');
+    }
+
+    function renderContentArea(section) {
+      const contentBody = document.getElementById('content-body');
+      
+      let uploadHint = '';
+      let acceptTypes = '';
+      
+      if (section === 'mufrodat' || section === 'qowaid') {
+        uploadHint = 'Unggah gambar atau PDF materi';
+        acceptTypes = 'image/*,.pdf';
+      } else if (section === 'qiroah') {
+        uploadHint = 'Unggah teks, gambar, PDF, atau audio';
+        acceptTypes = 'image/*,.pdf,audio/*,.txt,.doc,.docx';
+      } else if (section === 'hiwar') {
+        uploadHint = 'Unggah video percakapan';
+        acceptTypes = 'video/*';
+      }
+
+      const isTeacher = userRole === 'teacher';
+      
+      contentBody.innerHTML = `
+        ${!isTeacher ? `<div class="student-notice">📌 ${currentStudentName} (${currentStudentId}) - Klik "Lihat" untuk membuka materi langsung di browser.</div>` : ''}
+        
+        ${isTeacher ? `
+          <div class="upload-form">
+            <div class="upload-area" id="upload-area-click">
+              <div class="upload-icon">📤</div>
+              <div class="upload-text">Klik untuk Upload File</div>
+              <div class="upload-hint">${uploadHint}</div>
+            </div>
+            
+            <input type="file" id="file-input" class="file-input" accept="${acceptTypes}" multiple>
+            
+            <div id="file-preview" style="display: none; margin-top: 15px; padding: 15px; background: #edf2f7; border-radius: 8px;">
+              <div style="font-weight: 600; margin-bottom: 10px; color: #2d3748;">File yang dipilih:</div>
+              <div id="file-list"></div>
+            </div>
+            
+            <div class="form-group" style="margin-top: 20px;">
+              <label class="form-label" for="content-title">Judul Materi</label>
+              <input type="text" id="content-title" class="form-input" placeholder="Masukkan judul materi" required>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label" for="content-description">Deskripsi</label>
+              <input type="text" id="content-description" class="form-input" placeholder="Masukkan deskripsi singkat">
+            </div>
+            
+            <button type="button" class="submit-btn" id="upload-submit-btn">Tambah Materi</button>
+          </div>
+        ` : ''}
+        
+        <div class="content-list" id="content-list"></div>
+      `;
+
+      renderContentList();
+
+      if (isTeacher) {
+        setTimeout(() => {
+          const fileInput = document.getElementById('file-input');
+          const uploadArea = document.getElementById('upload-area-click');
+          const filePreview = document.getElementById('file-preview');
+          const fileList = document.getElementById('file-list');
+          const uploadBtn = document.getElementById('upload-submit-btn');
+
+          if (uploadArea) {
+            uploadArea.onclick = function() {
+              fileInput.click();
+            };
+          }
+
+          if (fileInput) {
+            fileInput.onchange = function(e) {
+              const files = e.target.files;
+              if (files.length > 0) {
+                filePreview.style.display = 'block';
+                fileList.innerHTML = '';
+                
+                for (let i = 0; i < files.length; i++) {
+                  const file = files[i];
+                  const fileSize = (file.size / 1024).toFixed(2);
+                  const fileIcon = getFileIcon(file.type);
+                  
+                  const fileItem = document.createElement('div');
+                  fileItem.style.cssText = 'padding: 10px; background: white; border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px;';
+                  fileItem.innerHTML = `
+                    <span style="font-size: 24px;">${fileIcon}</span>
+                    <div style="flex: 1;">
+                      <div style="font-weight: 600; color: #2d3748; font-size: 14px;">${file.name}</div>
+                      <div style="font-size: 12px; color: #718096;">${fileSize} KB</div>
+                    </div>
+                  `;
+                  fileList.appendChild(fileItem);
+                }
+              }
+            };
+          }
+
+          if (uploadBtn) {
+            uploadBtn.onclick = function() {
+              uploadContent(section);
+            };
+          }
+        }, 100);
+      }
+    }
+
+    function getFileIcon(fileType) {
+      if (fileType.startsWith('image/')) return '🖼️';
+      if (fileType.startsWith('video/')) return '🎥';
+      if (fileType.startsWith('audio/')) return '🎵';
+      if (fileType.includes('pdf')) return '📄';
+      if (fileType.includes('word') || fileType.includes('document')) return '📝';
+      return '📎';
+    }
+
+    function uploadContent(section) {
+      const titleInput = document.getElementById('content-title');
+      const descriptionInput = document.getElementById('content-description');
+      const fileInput = document.getElementById('file-input');
+
+      if (!titleInput || !titleInput.value.trim()) {
+        showNotification('Silakan masukkan judul materi.', 'error');
+        return;
+      }
+
+      const data = loadData();
+      const files = fileInput ? fileInput.files : [];
+      
+      let fileNames = [];
+      let fileTypes = [];
+      let fileSizes = [];
+      let fileContents = [];
+      let fileDatas = [];
+      
+      if (files.length > 0) {
+        for (let i = 0; i < files.length; i++) {
+          fileNames.push(files[i].name);
+          fileTypes.push(files[i].type);
+          fileSizes.push((files[i].size / 1024).toFixed(2) + ' KB');
+          
+          const fileExt = files[i].name.split('.').pop().toLowerCase();
+          let content = 'TEXT';
+          let fileData = 'Ini adalah konten file ' + files[i].name;
+          
+          if (fileExt === 'pdf') {
+            content = 'PDF';
+            fileData = 'PDF content for ' + files[i].name;
+          } else if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExt)) {
+            content = 'IMAGE';
+            fileData = 'https://images.unsplash.com/photo-1517697471339-4aa32003c11a?w=600&h=400&fit=crop';
+          } else if (['mp3', 'wav', 'ogg'].includes(fileExt)) {
+            content = 'AUDIO';
+            fileData = 'https://www.soundjay.com/button/beep-07.wav';
+          } else if (['mp4', 'avi', 'mov'].includes(fileExt)) {
+            content = 'VIDEO';
+            fileData = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+          } else if (['doc', 'docx', 'txt'].includes(fileExt)) {
+            content = 'TEXT';
+            fileData = 'Ini adalah contoh dokumen teks materi pembelajaran.';
+          }
+          
+          fileContents.push(content);
+          fileDatas.push(fileData);
+        }
+      } else {
+        const sampleFilesForSection = sampleFiles[section] || [];
+        sampleFilesForSection.forEach(file => {
+          fileNames.push(file.name);
+          fileTypes.push(file.type);
+          fileSizes.push(file.size);
+          fileContents.push(file.content);
+          fileDatas.push(file.data);
+        });
+      }
+      
+      const newContent = {
+        id: Date.now().toString(),
+        chapter: currentChapter.id,
+        section: section,
+        title: titleInput.value.trim(),
+        description: descriptionInput.value.trim() || 'Tidak ada deskripsi',
+        fileNames: fileNames.length > 0 ? fileNames : ['Tidak ada file'],
+        fileTypes: fileTypes.length > 0 ? fileTypes : [''],
+        fileSizes: fileSizes.length > 0 ? fileSizes : [''],
+        fileContents: fileContents.length > 0 ? fileContents : [''],
+        fileDatas: fileDatas.length > 0 ? fileDatas : [''],
+        fileCount: files.length > 0 ? files.length : (sampleFiles[section] ? sampleFiles[section].length : 0),
+        createdAt: new Date().toISOString()
+      };
+
+      data.contents.push(newContent);
+      saveData(data);
+
+      showNotification('Materi berhasil ditambahkan!', 'success');
+      titleInput.value = '';
+      descriptionInput.value = '';
+      if (fileInput) fileInput.value = '';
+      
+      const filePreview = document.getElementById('file-preview');
+      if (filePreview) filePreview.style.display = 'none';
+      
+      renderContentList();
+    }
+
+    function renderContentList() {
+      const listContainer = document.getElementById('content-list');
+      if (!listContainer) {
+        console.log('List container tidak ditemukan');
+        return;
+      }
+
+      const data = loadData();
+      const contentData = data.contents.filter(item => 
+        item.chapter === currentChapter.id && 
+        item.section === currentSection
+      );
+
+      if (contentData.length === 0 && userRole === 'student') {
+        const sampleFilesForSection = sampleFiles[currentSection] || [];
+        if (sampleFilesForSection.length > 0) {
+          sampleFilesForSection.forEach((file, index) => {
+            contentData.push({
+              id: 'sample-' + currentSection + '-' + index,
+              chapter: currentChapter.id,
+              section: currentSection,
+              title: 'Contoh Materi ' + (index + 1),
+              description: 'Ini adalah contoh materi untuk ' + currentSection,
+              fileNames: [file.name],
+              fileTypes: [file.type],
+              fileSizes: [file.size],
+              fileContents: [file.content],
+              fileDatas: [file.data],
+              fileCount: 1,
+              createdAt: new Date().toISOString()
+            });
+          });
+        }
+      }
+
+      if (contentData.length === 0) {
+        listContainer.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <div class="empty-text">${userRole === 'teacher' ? 'Belum ada konten. Tambahkan materi di atas.' : 'Belum ada materi yang tersedia.'}</div>
+          </div>
+        `;
+        return;
+      }
+
+      const isTeacher = userRole === 'teacher';
+
+      listContainer.innerHTML = contentData.map(item => {
+        let fileDisplay = '';
+        
+        if (item.fileNames && item.fileNames.length > 0 && item.fileNames[0] !== 'Tidak ada file') {
+          fileDisplay = item.fileNames.map((fileName, idx) => {
+            const fileType = item.fileTypes ? item.fileTypes[idx] : '';
+            const fileSize = item.fileSizes ? item.fileSizes[idx] : '';
+            const fileIcon = getFileIcon(fileType);
+            return `<div style="display: inline-block; margin-right: 10px; margin-bottom: 5px; padding: 5px 10px; background: white; border-radius: 6px; font-size: 12px;">
+              ${fileIcon} ${fileName} ${fileSize ? '(' + fileSize + ')' : ''}
+            </div>`;
+          }).join('');
+        } else if (item.fileName) {
+          fileDisplay = `<div style="display: inline-block; padding: 5px 10px; background: white; border-radius: 6px; font-size: 12px;">📎 ${item.fileName}</div>`;
+        } else {
+          fileDisplay = '<span style="color: #a0aec0; font-size: 12px;">Tidak ada file</span>';
+        }
+
+        return `
+          <div class="content-item" data-id="${item.id}">
+            <div class="content-info">
+              <div class="content-title">📚 ${item.title}</div>
+              <div class="content-meta" style="margin-top: 8px;">${fileDisplay}</div>
+              <div class="content-meta" style="margin-top: 8px; font-style: italic; color: #4a5568;">${item.description}</div>
+              <div class="content-meta" style="margin-top: 5px; font-size: 12px; color: #a0aec0;">📅 ${new Date(item.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+            </div>
+            <div class="content-actions">
+              ${isTeacher ? `
+                <button class="delete-btn" data-id="${item.id}">Hapus</button>
+              ` : `
+                <button class="view-btn" data-id="${item.id}">Lihat</button>
+              `}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      if (isTeacher) {
+        listContainer.querySelectorAll('.delete-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const itemId = e.target.dataset.id;
+            deleteContent(itemId);
+          });
+        });
+      } else {
+        listContainer.querySelectorAll('.view-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const itemId = e.target.dataset.id;
+            viewContent(itemId);
+          });
+        });
+      }
+    }
+
+    function viewContent(itemId) {
+      const data = loadData();
+      const content = data.contents.find(c => c.id === itemId);
+      
+      if (!content) {
+        showNotification('Konten tidak ditemukan.', 'error');
+        return;
+      }
+
+      const contentBody = document.getElementById('content-body');
+      currentFileIndex = 0;
+
+      let fileTabs = '';
+      let fileViewers = '';
+
+      if (content.fileNames && content.fileNames.length > 0 && content.fileNames[0] !== 'Tidak ada file') {
+        fileTabs = content.fileNames.map((fileName, idx) => {
+          const fileIcon = getFileIcon(content.fileTypes ? content.fileTypes[idx] : '');
+          return `
+            <button class="file-tab ${idx === 0 ? 'active' : ''}" data-index="${idx}">
+              ${fileIcon} ${fileName}
+            </button>
+          `;
+        }).join('');
+
+        fileViewers = content.fileNames.map((fileName, idx) => {
+          const fileType = content.fileTypes ? content.fileTypes[idx] : '';
+          const fileContent = content.fileContents ? content.fileContents[idx] : '';
+          const fileData = content.fileDatas ? content.fileDatas[idx] : '';
+          
+          let viewerContent = '';
+          
+          switch(fileContent) {
+            case 'PDF':
+              viewerContent = `
+                <div class="pdf-viewer">
+                  <div style="padding: 20px; text-align: center;">
+                    <div class="file-preview-icon">📄</div>
+                    <div class="file-preview-text">
+                      <h3>Preview PDF: ${fileName}</h3>
+                      <p>Berikut adalah konten PDF:</p>
+                      <div class="text-content">${fileData}</div>
+                    </div>
+                  </div>
+                </div>
+              `;
+              break;
+              
+            case 'IMAGE':
+              viewerContent = `
+                <div style="text-align: center;">
+                  <img src="${fileData}" alt="${fileName}" class="image-viewer">
+                  <p style="margin-top: 10px; color: #718096;">Gambar: ${fileName}</p>
+                </div>
+              `;
+              break;
+              
+            case 'AUDIO':
+              viewerContent = `
+                <div style="text-align: center;">
+                  <div class="file-preview-icon">🎵</div>
+                  <div class="file-preview-text">
+                    <h3>Audio: ${fileName}</h3>
+                    <audio controls class="audio-player">
+                      <source src="${fileData}" type="audio/mpeg">
+                      Browser Anda tidak mendukung pemutar audio.
+                    </audio>
+                  </div>
+                </div>
+              `;
+              break;
+              
+            case 'VIDEO':
+              viewerContent = `
+                <div style="text-align: center;">
+                  <video controls class="video-player">
+                    <source src="${fileData}" type="video/mp4">
+                    Browser Anda tidak mendukung pemutar video.
+                  </video>
+                  <p style="margin-top: 10px; color: #718096;">Video: ${fileName}</p>
+                </div>
+              `;
+              break;
+              
+            case 'TEXT':
+            default:
+              viewerContent = `
+                <div class="text-content">${fileData}</div>
+              `;
+          }
+          
+          return `
+            <div class="file-preview-content" data-index="${idx}" style="${idx === 0 ? '' : 'display: none;'}">
+              ${viewerContent}
+            </div>
+          `;
+        }).join('');
+      } else {
+        fileViewers = `
+          <div class="file-preview-container">
+            <div class="file-preview-content">
+              <div class="file-preview-icon">📭</div>
+              <div class="file-preview-text">Tidak ada file yang tersedia untuk materi ini.</div>
+            </div>
+          </div>
+        `;
+      }
+
+      contentBody.innerHTML = `
+        <div class="student-notice">
+          📖 Anda sedang melihat: <strong>${content.title}</strong>
+        </div>
+        <div style="background: #f7fafc; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+          <div style="font-weight: 600; color: #2d3748; margin-bottom: 10px;">Deskripsi Materi:</div>
+          <div style="color: #4a5568;">${content.description}</div>
+        </div>
+        
+        ${fileTabs ? `
+          <div class="file-preview-container">
+            <div class="file-tabs" id="file-tabs">
+              ${fileTabs}
+            </div>
+            <div id="file-viewers">
+              ${fileViewers}
+            </div>
+          </div>
+        ` : fileViewers}
+        
+        <div style="margin-top: 20px; text-align: center;">
+          <button class="back-btn" onclick="renderContentArea('${currentSection}')">← Kembali ke Daftar Materi</button>
+        </div>
+      `;
+
+      // Add tab switching functionality
+      if (fileTabs) {
+        const tabs = contentBody.querySelectorAll('.file-tab');
+        const viewers = contentBody.querySelectorAll('.file-preview-content');
+        
+        tabs.forEach(tab => {
+          tab.addEventListener('click', () => {
+            const index = parseInt(tab.dataset.index);
+            
+            // Update active tab
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            
+            // Show corresponding viewer
+            viewers.forEach(viewer => {
+              viewer.style.display = 'none';
+            });
+            viewers[index].style.display = 'block';
+          });
+        });
+      }
+    }
+
+    function deleteContent(itemId) {
+      const data = loadData();
+      data.contents = data.contents.filter(c => c.id !== itemId);
+      saveData(data);
+      renderContentList();
+      showNotification('Materi berhasil dihapus!', 'success');
+    }
+
+    function renderQuiz() {
+      const contentBody = document.getElementById('content-body');
+      
+      const quizQuestions = [
+        {
+          question: 'Apa arti dari "السلام عليكم"?',
+          options: ['Selamat pagi', 'Selamat tinggal', 'Salam sejahtera', 'Terima kasih'],
+          correct: 2
+        },
+        {
+          question: 'Kata "أب" dalam bahasa Indonesia berarti?',
+          options: ['Ibu', 'Ayah', 'Kakak', 'Adik'],
+          correct: 1
+        },
+        {
+          question: 'Bagaimana cara mengatakan "Sekolah" dalam bahasa Arab?',
+          options: ['البيت', 'المدرسة', 'المسجد', 'السوق'],
+          correct: 1
+        }
+      ];
+
+      let currentQuestion = 0;
+      let answers = [];
+      let quizSubmitted = false;
+
+      function renderQuestion() {
+        if (currentQuestion >= quizQuestions.length) {
+          if (!quizSubmitted) {
+            renderReview();
+          } else {
+            renderResult();
+          }
+          return;
+        }
+
+        const q = quizQuestions[currentQuestion];
+        const isReviewMode = quizSubmitted;
+        
+        contentBody.innerHTML = `
+          <div class="quiz-container">
+            <div class="quiz-question">
+              <div class="question-number">Soal ${currentQuestion + 1} dari ${quizQuestions.length}</div>
+              <div class="question-text">${q.question}</div>
+              <div class="quiz-options">
+                ${q.options.map((opt, idx) => {
+                  let optionClass = 'quiz-option';
+                  let indicator = '';
+                  
+                  if (isReviewMode) {
+                    optionClass += ' disabled';
+                    if (idx === q.correct) {
+                      optionClass += ' correct';
+                      indicator = '<span class="answer-indicator">✓</span>';
+                    }
+                    if (answers[currentQuestion] === idx && idx !== q.correct) {
+                      optionClass += ' incorrect';
+                      indicator = '<span class="answer-indicator">✗</span>';
+                    }
+                  } else if (answers[currentQuestion] === idx) {
+                    optionClass += ' selected';
+                  }
+                  
+                  return `
+                    <div class="${optionClass}" data-index="${idx}">
+                      ${String.fromCharCode(65 + idx)}. ${opt}${indicator}
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+            <div class="quiz-nav">
+              <button class="quiz-btn" id="prev-btn" ${currentQuestion === 0 ? 'disabled' : ''}>← Sebelumnya</button>
+              <button class="quiz-btn" id="next-btn" ${!isReviewMode && answers[currentQuestion] === undefined ? 'disabled' : ''}>${currentQuestion === quizQuestions.length - 1 && !isReviewMode ? 'Selesai' : 'Selanjutnya →'}</button>
+            </div>
+          </div>
+        `;
+
+        if (!isReviewMode) {
+          contentBody.querySelectorAll('.quiz-option').forEach(opt => {
+            opt.addEventListener('click', () => {
+              contentBody.querySelectorAll('.quiz-option').forEach(o => o.classList.remove('selected'));
+              opt.classList.add('selected');
+              answers[currentQuestion] = parseInt(opt.dataset.index);
+              document.getElementById('next-btn').disabled = false;
+            });
+          });
+        }
+
+        document.getElementById('prev-btn').addEventListener('click', () => {
+          currentQuestion--;
+          renderQuestion();
+        });
+
+        document.getElementById('next-btn').addEventListener('click', () => {
+          currentQuestion++;
+          renderQuestion();
+        });
+      }
+
+      function renderReview() {
+        const score = answers.reduce((acc, ans, idx) => {
+          return acc + (ans === quizQuestions[idx].correct ? 1 : 0);
+        }, 0);
+
+        const percentage = Math.round((score / quizQuestions.length) * 100);
+
+        contentBody.innerHTML = `
+          <div class="quiz-result">
+            <div class="result-score">${percentage}%</div>
+            <div class="result-text">Anda menjawab ${score} dari ${quizQuestions.length} soal dengan benar!</div>
+            <div style="display: flex; gap: 15px; justify-content: center; margin-top: 20px;">
+              <button class="quiz-btn" id="review-btn">📝 Lihat Pembahasan</button>
+              <button class="quiz-btn" id="retry-btn">🔄 Coba Lagi</button>
+            </div>
+          </div>
+        `;
+
+        document.getElementById('review-btn').addEventListener('click', () => {
+          quizSubmitted = true;
+          currentQuestion = 0;
+          renderQuestion();
+        });
+
+        document.getElementById('retry-btn').addEventListener('click', () => {
+          currentQuestion = 0;
+          answers = [];
+          quizSubmitted = false;
+          renderQuestion();
+        });
+      }
+
+      function renderResult() {
+        contentBody.innerHTML = `
+          <div class="quiz-result">
+            <div class="result-text" style="font-size: 18px; margin-bottom: 20px;">Pembahasan Soal</div>
+            <div style="text-align: left; max-width: 600px; margin: 0 auto;">
+              ${quizQuestions.map((q, idx) => {
+                const userAnswer = answers[idx];
+                const isCorrect = userAnswer === q.correct;
+                return `
+                  <div style="background: #f7fafc; padding: 20px; border-radius: 10px; margin-bottom: 15px; border-left: 4px solid ${isCorrect ? '#48bb78' : '#f56565'};">
+                    <div style="font-weight: 600; margin-bottom: 10px;">Soal ${idx + 1}: ${q.question}</div>
+                    <div style="margin-bottom: 5px;">Jawaban Anda: <strong>${userAnswer !== undefined ? String.fromCharCode(65 + userAnswer) + '. ' + q.options[userAnswer] : 'Tidak dijawab'}</strong> ${isCorrect ? '✓' : '✗'}</div>
+                    ${!isCorrect ? `<div style="color: #48bb78;">Jawaban Benar: <strong>${String.fromCharCode(65 + q.correct)}. ${q.options[q.correct]}</strong></div>` : ''}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+            <button class="quiz-btn" id="back-to-result" style="margin-top: 20px;">Kembali ke Hasil</button>
+          </div>
+        `;
+
+        document.getElementById('back-to-result').addEventListener('click', () => {
+          quizSubmitted = false;
+          currentQuestion = quizQuestions.length;
+          renderQuestion();
+        });
+      }
+
+      renderQuestion();
+    }
+
+    function showView(viewId) {
+      document.getElementById('main-menu').classList.remove('active');
+      document.getElementById('submenu-view').classList.remove('active');
+      document.getElementById('content-view').classList.remove('active');
+      
+      if (viewId === 'main-menu') {
+        document.getElementById('main-menu').style.display = 'block';
+      } else {
+        document.getElementById('main-menu').style.display = 'none';
+        document.getElementById(viewId).classList.add('active');
+      }
+    }
+
+    function showNotification(message, type) {
+      const contentBody = document.getElementById('content-body');
+      const notification = document.createElement('div');
+      notification.className = type === 'error' ? 'error-message' : 'success-message';
+      notification.textContent = message;
+      contentBody.insertBefore(notification, contentBody.firstChild);
+      setTimeout(() => notification.remove(), 3000);
+    }
+
+    // Initialize
+    setupLoginListeners();
+  </script>
+</body>
+</html>
