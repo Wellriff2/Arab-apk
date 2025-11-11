@@ -1,9 +1,5 @@
 [build]
   publish = "."
-  command = "echo 'No build command'"
-
-[functions]
-  directory = "netlify/functions"
 
 [[redirects]]
   from = "/*"
