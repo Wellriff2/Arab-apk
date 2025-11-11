@@ -1,509 +1,195 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pembelajaran Bahasa Arab</title>
-    <style>
-        /* CSS styles yang sudah ada sebelumnya */
-        /* ... (semua CSS dari kode sebelumnya) ... */
-    </style>
-</head>
-<body>
-    <!-- HTML structure yang sudah ada -->
-    <!-- ... (semua HTML dari kode sebelumnya) ... -->
+// Konfigurasi API - Gunakan path relative untuk Netlify Functions
+const API_BASE_URL = '/.netlify/functions';
 
-    <script>
-        // Konfigurasi API
-        const API_BASE_URL = '/.netlify/functions';
+// Fallback data jika database offline
+const fallbackData = {
+  students: [],
+  contents: [],
+  quizResults: []
+};
 
-        // Data struktur aplikasi
-        const chapters = [
-            { id: 1, semester: 1, icon: '👋', title: 'التحيات والتعارف', subtitle: 'Salam dan Perkenalan' },
-            { id: 2, semester: 1, icon: '👨‍👩‍👧‍👦', title: 'الأسرة', subtitle: 'Keluarga' },
-            { id: 3, semester: 1, icon: '🏫', title: 'المدرسة', subtitle: 'Sekolah' },
-            { id: 4, semester: 2, icon: '🌅', title: 'الْحَيَاةُ الْيَوْمِيَّةُ', subtitle: 'Kehidupan Sehari-hari' },
-            { id: 5, semester: 2, icon: '⚽', title: 'الهواية', subtitle: 'Hobi' },
-            { id: 6, semester: 2, icon: '🍽️', title: 'الطعام و الشراب', subtitle: 'Makanan dan Minuman' }
-        ];
-
-        const submenus = [
-            { id: 'mufrodat', icon: '📚', title: 'Mufrodat', subtitle: 'Kosakata' },
-            { id: 'qiroah', icon: '📖', title: 'Qiroah', subtitle: 'Membaca' },
-            { id: 'hiwar', icon: '💬', title: 'Hiwar', subtitle: 'Percakapan' },
-            { id: 'qowaid', icon: '✍️', title: 'Qowaid', subtitle: 'Tata Bahasa' },
-            { id: 'quiz', icon: '🎮', title: 'Quiz', subtitle: 'Latihan Soal' }
-        ];
-
-        // API Service
-        class ApiService {
-            static async request(endpoint, options = {}) {
-                const url = `${API_BASE_URL}${endpoint}`;
-                const config = {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        ...options.headers
-                    },
-                    ...options
-                };
-
-                try {
-                    const response = await fetch(url, config);
-                    
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    
-                    return await response.json();
-                } catch (error) {
-                    console.error('API request failed:', error);
-                    throw error;
-                }
-            }
-
-            // Students
-            static async getStudents() {
-                return this.request('/database/data');
-            }
-
-            static async createStudent(student) {
-                return this.request('/database/students', {
-                    method: 'POST',
-                    body: JSON.stringify(student)
-                });
-            }
-
-            // Contents
-            static async getContents(filters = {}) {
-                const params = new URLSearchParams();
-                Object.keys(filters).forEach(key => {
-                    if (filters[key]) params.append(key, filters[key]);
-                });
-                
-                return this.request(`/database/contents?${params}`);
-            }
-
-            static async createContent(content) {
-                return this.request('/database/contents', {
-                    method: 'POST',
-                    body: JSON.stringify(content)
-                });
-            }
-
-            static async deleteContent(contentId) {
-                return this.request(`/database/contents/${contentId}`, {
-                    method: 'DELETE'
-                });
-            }
-
-            // Authentication
-            static async teacherLogin(credentials) {
-                return this.request('/auth/login', {
-                    method: 'POST',
-                    body: JSON.stringify(credentials)
-                });
-            }
-        }
-
-        // Application State Management
-        class AppState {
-            constructor() {
-                this.currentSemester = 1;
-                this.currentChapter = null;
-                this.currentSection = null;
-                this.userRole = null;
-                this.currentStudentId = null;
-                this.currentStudentName = null;
-                this.currentFileIndex = 0;
-            }
-
-            // State persistence methods
-            saveToLocalStorage() {
-                const state = {
-                    userRole: this.userRole,
-                    currentStudentId: this.currentStudentId,
-                    currentStudentName: this.currentStudentName
-                };
-                localStorage.setItem('appState', JSON.stringify(state));
-            }
-
-            loadFromLocalStorage() {
-                const saved = localStorage.getItem('appState');
-                if (saved) {
-                    const state = JSON.parse(saved);
-                    this.userRole = state.userRole;
-                    this.currentStudentId = state.currentStudentId;
-                    this.currentStudentName = state.currentStudentName;
-                }
-            }
-
-            clearState() {
-                this.userRole = null;
-                this.currentStudentId = null;
-                this.currentStudentName = null;
-                localStorage.removeItem('appState');
-            }
-        }
-
-        // UI Controller
-        class UIController {
-            constructor(appState) {
-                this.appState = appState;
-                this.init();
-            }
-
-            init() {
-                this.setupLoginListeners();
-                this.setupEventListeners();
-                this.checkPreviousSession();
-            }
-
-            async checkPreviousSession() {
-                this.appState.loadFromLocalStorage();
-                if (this.appState.userRole) {
-                    await this.showApp();
-                }
-            }
-
-            setupLoginListeners() {
-                // Login event listeners
-                document.getElementById('student-login-btn').addEventListener('click', (e) => {
-                    e.preventDefault();
-                    this.showStudentLogin();
-                });
-
-                document.getElementById('teacher-login-btn').addEventListener('click', (e) => {
-                    e.preventDefault();
-                    this.showTeacherLogin();
-                });
-
-                document.getElementById('student-login-form').addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    await this.handleStudentLogin();
-                });
-
-                document.getElementById('teacher-login-form').addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    await this.handleTeacherLogin();
-                });
-
-                document.getElementById('logout-btn').addEventListener('click', () => {
-                    this.handleLogout();
-                });
-            }
-
-            setupEventListeners() {
-                // Navigation event listeners
-                document.querySelectorAll('.semester-tab').forEach(tab => {
-                    tab.addEventListener('click', () => {
-                        this.handleSemesterTabClick(tab);
-                    });
-                });
-
-                document.getElementById('back-to-chapters').addEventListener('click', () => {
-                    this.showView('main-menu');
-                    this.appState.currentChapter = null;
-                });
-
-                document.getElementById('back-to-submenu').addEventListener('click', () => {
-                    this.showView('submenu-view');
-                    this.appState.currentSection = null;
-                });
-            }
-
-            // UI Methods
-            showStudentLogin() {
-                const studentForm = document.getElementById('student-login-form');
-                const teacherForm = document.getElementById('teacher-login-form');
-                
-                studentForm.classList.add('active');
-                teacherForm.classList.remove('active');
-                
-                document.getElementById('password-input').value = '';
-                document.getElementById('login-error').innerHTML = '';
-            }
-
-            showTeacherLogin() {
-                const studentForm = document.getElementById('student-login-form');
-                const teacherForm = document.getElementById('teacher-login-form');
-                
-                teacherForm.classList.add('active');
-                studentForm.classList.remove('active');
-                
-                document.getElementById('student-name-input').value = '';
-                document.getElementById('student-id-preview').style.display = 'none';
-                document.getElementById('student-login-error').innerHTML = '';
-            }
-
-            async handleStudentLogin() {
-                const name = document.getElementById('student-name-input').value.trim();
-                
-                if (!name || name.length < 3) {
-                    this.showLoginError('student-login-error', 'Nama harus minimal 3 karakter.');
-                    return;
-                }
-
-                this.showLoading('student');
-
-                try {
-                    const data = await ApiService.getStudents();
-                    
-                    if (data.students.length >= 50) {
-                        this.showLoginError('student-login-error', 'Maaf, kuota siswa sudah penuh (maksimal 50 siswa).');
-                        return;
-                    }
-
-                    const existingStudent = data.students.find(s => 
-                        s.name.toLowerCase() === name.toLowerCase()
-                    );
-
-                    if (existingStudent) {
-                        this.appState.currentStudentId = existingStudent.id;
-                        this.appState.currentStudentName = existingStudent.name;
-                        this.appState.userRole = 'student';
-                        this.appState.saveToLocalStorage();
-                        await this.showApp();
-                        return;
-                    }
-
-                    const newStudentId = this.generateStudentId(name);
-                    const newStudent = {
-                        id: newStudentId,
-                        name: name
-                    };
-
-                    await ApiService.createStudent(newStudent);
-
-                    this.appState.currentStudentId = newStudentId;
-                    this.appState.currentStudentName = name;
-                    this.appState.userRole = 'student';
-                    this.appState.saveToLocalStorage();
-                    
-                    this.showStudentIdPreview(newStudentId);
-                    
-                    setTimeout(async () => {
-                        await this.showApp();
-                    }, 2000);
-                } catch (error) {
-                    this.showLoginError('student-login-error', 'Terjadi kesalahan saat login. Silakan coba lagi.');
-                } finally {
-                    this.hideLoading('student');
-                }
-            }
-
-            async handleTeacherLogin() {
-                const password = document.getElementById('password-input').value;
-                
-                this.showLoading('teacher');
-
-                try {
-                    if (password === 'guru123') {
-                        this.appState.userRole = 'teacher';
-                        this.appState.saveToLocalStorage();
-                        await this.showApp();
-                    } else {
-                        this.showLoginError('login-error', 'Password salah. Silakan coba lagi.');
-                    }
-                } finally {
-                    this.hideLoading('teacher');
-                }
-            }
-
-            handleLogout() {
-                this.appState.clearState();
-                this.showLoginScreen();
-            }
-
-            async showApp() {
-                document.getElementById('login-view').style.display = 'none';
-                document.getElementById('app-view').style.display = 'flex';
-                
-                const userBadge = document.getElementById('user-badge');
-                const userIcon = document.getElementById('user-icon');
-                const userRoleText = document.getElementById('user-role');
-                
-                if (this.appState.userRole === 'teacher') {
-                    userBadge.classList.add('teacher');
-                    userIcon.textContent = '👨‍🏫';
-                    userRoleText.textContent = 'Guru';
-                    document.getElementById('students-list-view').style.display = 'block';
-                    await this.updateStudentsList();
-                } else {
-                    userBadge.classList.remove('teacher');
-                    userIcon.textContent = '👨‍🎓';
-                    userRoleText.textContent = `${this.appState.currentStudentName} (${this.appState.currentStudentId})`;
-                    document.getElementById('students-list-view').style.display = 'none';
-                }
-                
-                this.renderChapters();
-            }
-
-            showLoginScreen() {
-                document.getElementById('login-view').style.display = 'flex';
-                document.getElementById('app-view').style.display = 'none';
-                document.getElementById('teacher-login-form').classList.remove('active');
-                document.getElementById('student-login-form').classList.remove('active');
-                document.getElementById('password-input').value = '';
-                document.getElementById('student-name-input').value = '';
-                document.getElementById('student-id-preview').style.display = 'none';
-                this.showView('main-menu');
-            }
-
-            // Utility Methods
-            generateStudentId(name) {
-                const namePart = name.substring(0, 3).toUpperCase().replace(/[^A-Z]/g, 'X');
-                const randomPart = Math.floor(1000 + Math.random() * 9000);
-                return `${namePart}${randomPart}`;
-            }
-
-            showStudentIdPreview(studentId) {
-                const preview = document.getElementById('student-id-preview');
-                const previewValue = document.getElementById('student-id-preview-value');
-                previewValue.textContent = studentId;
-                preview.style.display = 'block';
-            }
-
-            showLoading(type) {
-                const spinner = document.getElementById(`${type}-login-spinner`);
-                const loginText = document.getElementById(`${type}-login-text`);
-                spinner.style.display = 'inline-block';
-                loginText.textContent = 'Memproses...';
-            }
-
-            hideLoading(type) {
-                const spinner = document.getElementById(`${type}-login-spinner`);
-                const loginText = document.getElementById(`${type}-login-text`);
-                spinner.style.display = 'none';
-                loginText.textContent = 'Masuk';
-            }
-
-            showLoginError(elementId, message) {
-                const errorDiv = document.getElementById(elementId);
-                errorDiv.innerHTML = `<div class="error-message">${message}</div>`;
-                setTimeout(() => {
-                    errorDiv.innerHTML = '';
-                }, 3000);
-            }
-
-            showNotification(message, type) {
-                const contentBody = document.getElementById('content-body');
-                const notification = document.createElement('div');
-                notification.className = type === 'error' ? 'error-message' : 'success-message';
-                notification.textContent = message;
-                contentBody.insertBefore(notification, contentBody.firstChild);
-                setTimeout(() => notification.remove(), 3000);
-            }
-
-            showView(viewId) {
-                document.getElementById('main-menu').classList.remove('active');
-                document.getElementById('submenu-view').classList.remove('active');
-                document.getElementById('content-view').classList.remove('active');
-                
-                if (viewId === 'main-menu') {
-                    document.getElementById('main-menu').style.display = 'block';
-                } else {
-                    document.getElementById('main-menu').style.display = 'none';
-                    document.getElementById(viewId).classList.add('active');
-                }
-            }
-
-            // Content Management Methods
-            renderChapters() {
-                const container = document.getElementById('chapters-container');
-                const filteredChapters = chapters.filter(ch => ch.semester === this.appState.currentSemester);
-                
-                container.innerHTML = filteredChapters.map(chapter => `
-                    <div class="chapter-card" data-chapter="${chapter.id}">
-                        <div class="chapter-icon">${chapter.icon}</div>
-                        <div class="chapter-number">Bab ${chapter.id}</div>
-                        <div class="chapter-title">${chapter.title}</div>
-                        <div class="chapter-subtitle">${chapter.subtitle}</div>
-                    </div>
-                `).join('');
-
-                container.querySelectorAll('.chapter-card').forEach(card => {
-                    card.addEventListener('click', () => {
-                        const chapterId = parseInt(card.dataset.chapter);
-                        this.openChapter(chapterId);
-                    });
-                });
-            }
-
-            openChapter(chapterId) {
-                this.appState.currentChapter = chapters.find(ch => ch.id === chapterId);
-                document.getElementById('submenu-chapter-title').textContent = 
-                    `${this.appState.currentChapter.title} - ${this.appState.currentChapter.subtitle}`;
-                
-                const submenuContainer = document.getElementById('submenu-items');
-                submenuContainer.innerHTML = submenus.map(submenu => `
-                    <button class="submenu-item" data-section="${submenu.id}">
-                        <div class="submenu-item-icon">${submenu.icon}</div>
-                        <div>${submenu.title}</div>
-                        <div style="font-size: 12px; opacity: 0.9; margin-top: 5px;">${submenu.subtitle}</div>
-                    </button>
-                `).join('');
-
-                submenuContainer.querySelectorAll('.submenu-item').forEach(item => {
-                    item.addEventListener('click', () => {
-                        const section = item.dataset.section;
-                        this.openSection(section);
-                    });
-                });
-
-                this.showView('submenu-view');
-            }
-
-            // ... (methods lainnya untuk content management, quiz, dll.)
-
-            async updateStudentsList() {
-                try {
-                    const data = await ApiService.getStudents();
-                    const studentsGrid = document.getElementById('students-grid');
-                    const countBadge = document.getElementById('student-count-badge');
-                    
-                    countBadge.textContent = `${data.students.length} Siswa`;
-                    
-                    if (data.students.length === 0) {
-                        studentsGrid.innerHTML = `
-                            <div class="empty-state" style="grid-column: 1 / -1;">
-                                <div class="empty-icon">👥</div>
-                                <div class="empty-text">Belum ada siswa yang terdaftar</div>
-                            </div>
-                        `;
-                        return;
-                    }
-
-                    studentsGrid.innerHTML = data.students
-                        .sort((a, b) => a.name.localeCompare(b.name))
-                        .map(student => `
-                            <div class="student-card">
-                                <div class="student-card-name">👨‍🎓 ${student.name}</div>
-                                <div class="student-card-id">ID: ${student.id}</div>
-                            </div>
-                        `).join('');
-                } catch (error) {
-                    console.error('Failed to update students list:', error);
-                }
-            }
-
-            handleSemesterTabClick(tab) {
-                document.querySelectorAll('.semester-tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                this.appState.currentSemester = parseInt(tab.dataset.semester);
-                this.renderChapters();
-            }
-        }
-
-        // Initialize Application
-        const appState = new AppState();
-        const uiController = new UIController(appState);
-
-        // Global functions untuk event handlers
-        window.renderContentArea = function(section) {
-            uiController.renderContentArea(section);
+// Enhanced API Service dengan fallback mechanism
+class ApiService {
+    static async request(endpoint, options = {}) {
+        const url = `${API_BASE_URL}${endpoint}`;
+        const config = {
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            },
+            ...options
         };
 
-        console.log('Aplikasi Pembelajaran Bahasa Arab telah diinisialisasi');
-    </script>
-</body>
-</html>
+        try {
+            const response = await fetch(url, config);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            return await response.json();
+        } catch (error) {
+            console.error('API request failed:', error);
+            
+            // Fallback ke localStorage untuk critical operations
+            if (endpoint === '/database/data' && options.method === 'GET') {
+                const localData = localStorage.getItem('appData');
+                return localData ? JSON.parse(localData) : fallbackData;
+            }
+            
+            throw error;
+        }
+    }
+
+    // Students methods
+    static async getStudents() {
+        try {
+            return await this.request('/database/students', { method: 'GET' });
+        } catch (error) {
+            // Fallback ke localStorage
+            const localData = localStorage.getItem('appData');
+            const data = localData ? JSON.parse(localData) : fallbackData;
+            return data.students || [];
+        }
+    }
+
+    static async createStudent(student) {
+        try {
+            const result = await this.request('/database/students', {
+                method: 'POST',
+                body: JSON.stringify(student)
+            });
+            
+            // Update local storage
+            this.updateLocalStorage('students', result);
+            return result;
+        } catch (error) {
+            // Fallback: simpan di localStorage
+            const localData = localStorage.getItem('appData');
+            const data = localData ? JSON.parse(localData) : { ...fallbackData };
+            
+            if (!data.students.find(s => s.id === student.id)) {
+                data.students.push({ ...student, createdAt: new Date().toISOString() });
+                localStorage.setItem('appData', JSON.stringify(data));
+            }
+            
+            return student;
+        }
+    }
+
+    // Contents methods
+    static async getContents(filters = {}) {
+        try {
+            const params = new URLSearchParams();
+            Object.keys(filters).forEach(key => {
+                if (filters[key]) params.append(key, filters[key]);
+            });
+            
+            return await this.request(`/database/contents?${params}`);
+        } catch (error) {
+            // Fallback ke localStorage
+            const localData = localStorage.getItem('appData');
+            const data = localData ? JSON.parse(localData) : fallbackData;
+            let contents = data.contents || [];
+            
+            // Apply filters
+            if (filters.chapter) {
+                contents = contents.filter(c => c.chapter_id == filters.chapter);
+            }
+            if (filters.section) {
+                contents = contents.filter(c => c.section === filters.section);
+            }
+            
+            return contents;
+        }
+    }
+
+    static async createContent(content) {
+        try {
+            const result = await this.request('/database/contents', {
+                method: 'POST',
+                body: JSON.stringify(content)
+            });
+            
+            // Update local storage
+            this.updateLocalStorage('contents', result);
+            return result;
+        } catch (error) {
+            // Fallback: simpan di localStorage
+            const localData = localStorage.getItem('appData');
+            const data = localData ? JSON.parse(localData) : { ...fallbackData };
+            
+            const newContent = {
+                ...content,
+                id: Date.now().toString(),
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            };
+            
+            data.contents.push(newContent);
+            localStorage.setItem('appData', JSON.stringify(data));
+            
+            return newContent;
+        }
+    }
+
+    static async deleteContent(contentId) {
+        try {
+            await this.request(`/database/contents/${contentId}`, {
+                method: 'DELETE'
+            });
+            
+            // Update local storage
+            const localData = localStorage.getItem('appData');
+            if (localData) {
+                const data = JSON.parse(localData);
+                data.contents = data.contents.filter(c => c.id !== contentId);
+                localStorage.setItem('appData', JSON.stringify(data));
+            }
+            
+            return { success: true };
+        } catch (error) {
+            // Fallback: hapus dari localStorage
+            const localData = localStorage.getItem('appData');
+            if (localData) {
+                const data = JSON.parse(localData);
+                data.contents = data.contents.filter(c => c.id !== contentId);
+                localStorage.setItem('appData', JSON.stringify(data));
+            }
+            
+            return { success: true };
+        }
+    }
+
+    // Authentication
+    static async teacherLogin(credentials) {
+        return this.request('/auth/login', {
+            method: 'POST',
+            body: JSON.stringify(credentials)
+        });
+    }
+
+    // Helper method untuk update localStorage
+    static updateLocalStorage(type, newItem) {
+        const localData = localStorage.getItem('appData');
+        const data = localData ? JSON.parse(localData) : { ...fallbackData };
+        
+        if (type === 'students') {
+            const existingIndex = data.students.findIndex(s => s.id === newItem.id);
+            if (existingIndex >= 0) {
+                data.students[existingIndex] = newItem;
+            } else {
+                data.students.push(newItem);
+            }
+        } else if (type === 'contents') {
+            const existingIndex = data.contents.findIndex(c => c.id === newItem.id);
+            if (existingIndex >= 0) {
+                data.contents[existingIndex] = newItem;
+            } else {
+                data.contents.push(newItem);
+            }
+        }
+        
+        localStorage.setItem('appData', JSON.stringify(data));
+    }
+}
