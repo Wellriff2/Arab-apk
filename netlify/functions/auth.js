@@ -1,26 +1,29 @@
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
+// netlify/functions/auth.js - CommonJS version
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key';
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key-for-development';
 
 // Mock teacher data (dalam production, ambil dari database)
 const teachers = [
   {
     id: '1',
     username: 'guru',
-    password: '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // guru123
+    // Password: "guru123" - hashed dengan bcrypt
+    passwordHash: '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
     name: 'Guru Bahasa Arab'
   }
 ];
 
-export const handler = async (event, context) => {
+exports.handler = async (event, context) => {
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Access-Control-Allow-Credentials': 'true'
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+    'Access-Control-Max-Age': '86400'
   };
 
+  // Handle preflight request
   if (event.httpMethod === 'OPTIONS') {
     return {
       statusCode: 200,
@@ -33,6 +36,14 @@ export const handler = async (event, context) => {
     try {
       const { username, password } = JSON.parse(event.body);
 
+      if (!username || !password) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'Username and password are required' })
+        };
+      }
+
       // Find teacher
       const teacher = teachers.find(t => t.username === username);
       
@@ -44,8 +55,8 @@ export const handler = async (event, context) => {
         };
       }
 
-      // Verify password (dalam production, gunakan bcrypt.compare)
-      const isValidPassword = await bcrypt.compare(password, teacher.password);
+      // Verify password
+      const isValidPassword = await bcrypt.compare(password, teacher.passwordHash);
 
       if (!isValidPassword) {
         return {
@@ -60,7 +71,8 @@ export const handler = async (event, context) => {
         { 
           userId: teacher.id, 
           username: teacher.username,
-          role: 'teacher'
+          role: 'teacher',
+          name: teacher.name
         },
         JWT_SECRET,
         { expiresIn: '24h' }
@@ -85,7 +97,10 @@ export const handler = async (event, context) => {
       return {
         statusCode: 500,
         headers,
-        body: JSON.stringify({ error: 'Internal server error' })
+        body: JSON.stringify({ 
+          error: 'Internal server error',
+          message: error.message 
+        })
       };
     }
   }
