@@ -1,18 +1,40 @@
+// netlify/functions/database.js
 const { Pool } = require('pg');
 
-// Konfigurasi pool untuk Neon
+// Load environment configuration
+let envConfig;
+try {
+  envConfig = require('./env-config');
+} catch (error) {
+  console.error('❌ Failed to load env-config:', error.message);
+  // Fallback langsung ke process.env
+  envConfig = {
+    database: {
+      url: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false }
+    },
+    isProduction: process.env.NODE_ENV === 'production'
+  };
+}
+
+console.log('🔧 Database URL:', envConfig.database.url ? 'Set' : 'Not set');
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  }
+  connectionString: envConfig.database.url,
+  ssl: envConfig.database.ssl
 });
 
-// Test connection saat function load
-console.log('Neon Database URL:', process.env.DATABASE_URL ? 'Set' : 'Not set');
+// Test connection
+pool.query('SELECT NOW()')
+  .then(() => console.log('✅ Database connected successfully to Neon'))
+  .catch(err => {
+    console.error('❌ Database connection failed:', err.message);
+    console.log('💡 Check DATABASE_URL in Netlify environment variables');
+  });
 
 exports.handler = async (event, context) => {
-  // CORS headers
+  console.log('🚀 Database function called:', event.httpMethod, event.path);
+
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
@@ -20,15 +42,25 @@ exports.handler = async (event, context) => {
     'Access-Control-Max-Age': '86400'
   };
 
-  // Handle preflight
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers, body: '' };
   }
 
+  // Check if database is configured
+  if (!envConfig.database.url) {
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({
+        error: 'Database not configured',
+        message: 'DATABASE_URL environment variable is missing. Please set it in Netlify dashboard.',
+        solution: 'Go to Netlify Site Settings > Environment Variables > Add DATABASE_URL'
+      })
+    };
+  }
+
   const path = event.path.replace('/.netlify/functions/database', '');
   const segments = path.split('/').filter(segment => segment);
-
-  console.log('Function called:', event.httpMethod, path);
 
   try {
     // Get all data endpoint
@@ -52,6 +84,12 @@ exports.handler = async (event, context) => {
           quizResults: quizResults.rows
         };
 
+        console.log('📊 Data retrieved:', {
+          students: data.students.length,
+          contents: data.contents.length,
+          quizResults: data.quizResults.length
+        });
+
         return { statusCode: 200, headers, body: JSON.stringify(data) };
       } finally {
         client.release();
@@ -69,6 +107,7 @@ exports.handler = async (event, context) => {
           [id, name]
         );
 
+        console.log('✅ Student created:', result.rows[0]);
         return { statusCode: 201, headers, body: JSON.stringify(result.rows[0]) };
       } finally {
         client.release();
@@ -105,67 +144,30 @@ exports.handler = async (event, context) => {
         query += ' ORDER BY c.created_at DESC';
         const result = await client.query(query, params);
 
+        console.log('📚 Contents retrieved:', result.rows.length);
         return { statusCode: 200, headers, body: JSON.stringify(result.rows) };
       } finally {
         client.release();
       }
     }
 
-    if (event.httpMethod === 'POST' && segments[0] === 'contents') {
-      const client = await pool.connect();
-      try {
-        const content = JSON.parse(event.body);
-        
-        const result = await client.query(
-          `INSERT INTO contents (
-            chapter_id, section, title, description, 
-            file_names, file_types, file_sizes, file_contents, file_datas, file_count
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
-          [
-            content.chapter,
-            content.section,
-            content.title,
-            content.description || '',
-            content.fileNames || [],
-            content.fileTypes || [],
-            content.fileSizes || [],
-            content.fileContents || [],
-            content.fileDatas || [],
-            content.fileCount || 0
-          ]
-        );
-
-        return { statusCode: 201, headers, body: JSON.stringify(result.rows[0]) };
-      } finally {
-        client.release();
-      }
-    }
-
-    if (event.httpMethod === 'DELETE' && segments[0] === 'contents' && segments[1]) {
-      const client = await pool.connect();
-      try {
-        const contentId = segments[1];
-        await client.query('DELETE FROM contents WHERE id = $1', [contentId]);
-        return { statusCode: 200, headers, body: JSON.stringify({ success: true }) };
-      } finally {
-        client.release();
-      }
-    }
+    // Add other endpoints as needed...
 
     return {
       statusCode: 404,
       headers,
-      body: JSON.stringify({ error: 'Endpoint not found' })
+      body: JSON.stringify({ error: 'Endpoint not found', path: path })
     };
 
   } catch (error) {
-    console.error('Neon Database error:', error);
+    console.error('💥 Database function error:', error);
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         error: 'Database error',
-        message: error.message
+        message: error.message,
+        database: 'Neon PostgreSQL'
       })
     };
   }
